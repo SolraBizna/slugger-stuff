@@ -51,20 +51,20 @@ end
 
 table.sort(snaps, function(a,b) return a.when < b.when end)
 
-local currents = {}
-local function get_current(machine)
-   if currents[machine] ~= nil then
-      return currents[machine] or nil
+local latests = {}
+local function get_latest(machine)
+   if latests[machine] ~= nil then
+      return latests[machine] or nil
    else
-      local p = io.popen("/bin/readlink "..base.."/"..machine.."/current 2>/dev/null", "r")
+      local p = io.popen("/bin/readlink "..base.."/"..machine.."/latest 2>/dev/null", "r")
       local l = p:read("*l")
       p:close()
       if l and l:sub(1,1) == "@" then
          l = parse_when(l)
-         currents[machine] = l
+         latests[machine] = l
          return l
       else
-         currents[machine] = false
+         latests[machine] = false
          return nil
       end
    end
@@ -102,8 +102,8 @@ if grace > 0 then
       if not snap.keep then
 	 os.execute("/bin/rm -rf --one-file-system "..base.."/"..snap.machine.."/@"..snap.time)
       elseif snap.keep == "KEEP" then
-         local current = get_current(snap.machine)
-         if current ~= nil and snap.when < current then
+         local latest = get_latest(snap.machine)
+         if latest ~= nil and snap.when < latest then
             local trimtime = snap.when - snap.when % resolution
             local trimdig = 1
             while trimdig * 10 <= resolution do trimdig = trimdig * 10 end
