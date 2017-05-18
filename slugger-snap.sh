@@ -12,7 +12,7 @@ if [ ! -e "$1/current" ]; then
     exit 0
 fi
 
-NOW=`date -u +%Y.%m.%d-%H%M.%S`
+NOW=`date +%Y.%m.%d-%H%M.%S`
 
 if [ -e "$1/@$NOW" ]; then
     echo "Already exists, try again later"

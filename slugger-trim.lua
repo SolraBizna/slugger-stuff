@@ -32,7 +32,7 @@ local function parse_when(x)
    end
 end
 
-local now = assert(tonumber(os.date("!%Y%m%d%H%M%S", os.time())))
+local now = assert(tonumber(os.date("%Y%m%d%H%M%S", os.time())))
 local grace_time = now - now % grace
 
 local snaps = {}
