@@ -19,6 +19,6 @@ if [ -e "$1/@$NOW" ]; then
     exit 1
 fi
 
-rm "$1/latest"
+rm -f "$1/latest"
 mv "$1/current" "$1/@$NOW"
 ln -s "@$NOW" "$1"/latest
