@@ -14,7 +14,7 @@ if [ -z "$__SLUGGER_FLOCKED__" ]; then
 fi
 
 KILL_AGENT=
-if [ -z "$SSH_AGENT_PID" ]; then
+if [ -z "$SSH_AGENT_PID" -a -z "$SSH_AUTH_SOCK" ]; then
     exec env CALL_SSH_ADD=1 ssh-agent bash $0 $*
 fi
 if [ ! -z "$CALL_SSH_ADD" ]; then
