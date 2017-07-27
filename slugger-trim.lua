@@ -1,10 +1,12 @@
 #!/usr/bin/env lua
 
 local function printf(format, ...) return print(format:format(...)) end
-if #arg ~= 3 then
-   printf("Usage: %s base grace resolution\nExample: %s /meat 100 10000\n  (leave one snapshot per hour, sparing snapshots made within the current\n   minute)\nif grace and resolution are both 0, deletes the oldest snapshot that exists for any machine that still has at least one snapshot", arg[0], arg[0])
+if #arg ~= 3 and (#arg ~= 4 or arg[4] ~= "-v") then
+   printf("Usage: %s base grace resolution\nExample: %s /meat 100 10000\n  (leave one snapshot per hour, sparing snapshots made within the current\n   minute)\nif grace and resolution are both 0, deletes the oldest snapshot that exists for any machine that still has at least one snapshot\nAdd -v to the end of the command line to print statistics on deleted and renamed snapshots", arg[0], arg[0])
    os.exit(1)
 end
+
+local verbose = arg[4] == "-v"
 
 local old_execute = os.execute
 function os.execute(...)
@@ -100,6 +102,9 @@ if grace > 0 then
       local snap = snaps[n]
       -- print(snaps[n].machine.."@"..snaps[n].time..": "..(snaps[n].keep or "KILL"),snaps[n].when)
       if not snap.keep then
+         if verbose then
+            printf("Discard %s/@%s", snap.machine, snap.time)
+         end
 	 os.execute("/bin/rm -rf --one-file-system "..base.."/"..snap.machine.."/@"..snap.time)
       elseif snap.keep == "KEEP" then
          local latest = get_latest(snap.machine)
@@ -113,6 +118,10 @@ if grace > 0 then
             if #name > 6 then name = name:sub(1,6).."."..name:sub(7,-1) end
             if #name > 4 then name = name:sub(1,4).."."..name:sub(5,-1) end
             if name ~= snap.time and #name < #snap.time then
+               if verbose then
+                  printf("Rename %s/@%s -> @%s", snap.machine, snap.time,
+                         name)
+               end
                os.execute("/bin/mv "..base.."/"..snap.machine.."/@"..snap.time.." "..base.."/"..snap.machine.."/@"..name)
             end
          end
@@ -129,6 +138,9 @@ else
    for n=1,#snaps do
       local snap = snaps[n]
       if snapcounts[snap.machine] > 1 then
+         if verbose then
+            printf("Discard %s/@%s", snap.machine, snap.time)
+         end
 	 os.execute("/bin/rm -rf --one-file-system "..base.."/"..snap.machine.."/@"..snap.time)
 	 return
       end
