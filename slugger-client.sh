@@ -31,14 +31,19 @@ fi
 
 set -e
 
-if [ \! \( -r $SLUGGER_DIR/host -a -r $SLUGGER_DIR/dir -a -r $SLUGGER_DIR/sources -a -r $SLUGGER_DIR/exclude -a -r $SLUGGER_DIR/extras \) ]; then
+if [ \! \( -r $SLUGGER_DIR/host -a -r $SLUGGER_DIR/dir -a -r $SLUGGER_DIR/sources -a -r $SLUGGER_DIR/exclude \) ]; then
     echo "Slugger client not fully configured. The following files need to be created:"
     [ -r $SLUGGER_DIR/host ] || echo "* $SLUGGER_DIR/host (destination host for this machine's backups)"
     [ -r $SLUGGER_DIR/dir ] || echo "* $SLUGGER_DIR/dir (destination dir on host for this machine's backups)"
     [ -r $SLUGGER_DIR/sources ] || echo "* $SLUGGER_DIR/sources (paths on this machine to back up)"
     [ -r $SLUGGER_DIR/exclude ] || echo "* $SLUGGER_DIR/exclude (passed to rsync --exclude-from)"
-    [ -r $SLUGGER_DIR/extras ] || echo "* $SLUGGER_DIR/extras (passed as additional arguments to rsync after the other options but before the file paths)"
     exit 3
+fi
+
+if [ -r $SLUGGER_DIR/extras ]; then
+    EXTRAS="$(cat $SLUGGER_DIR/extras)"
+else
+    EXTRAS=
 fi
 
 if [ -z "$RSYNC_RSH" ]; then
@@ -55,5 +60,5 @@ else
     PROGRESS_OPTIONS=""
 fi
 
-rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw --fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $(cat $SLUGGER_DIR/extras) / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
+rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw --fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $EXTRAS / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
 $RSYNC_RSH "$(cat $SLUGGER_DIR/host)" slugger-snap "$(cat $SLUGGER_DIR/dir)" || exit 5
