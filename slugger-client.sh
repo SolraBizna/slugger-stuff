@@ -60,5 +60,5 @@ else
     PROGRESS_OPTIONS=""
 fi
 
-rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw --fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $EXTRAS / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
+rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw -M--fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $EXTRAS / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
 $RSYNC_RSH "$(cat $SLUGGER_DIR/host)" slugger-snap "$(cat $SLUGGER_DIR/dir)" || exit 5
