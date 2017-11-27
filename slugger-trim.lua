@@ -39,7 +39,7 @@ local grace_time = now - now % grace
 
 local snaps = {}
 for machine in lfs.dir(base) do
-   if machine:sub(1,1) == "." then goto continue end
+   if machine:sub(1,1) == "." or machine == "lost+found" then goto continue end
    for dir in lfs.dir(base.."/"..machine) do
       if dir:sub(1,1) ~= "@" then goto continue2 end
       local when = parse_when(dir)
