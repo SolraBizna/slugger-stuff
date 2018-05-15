@@ -73,7 +73,7 @@ So, if we had:
 
 # Client Setup
 
-Clients need only Bash, rsync, and OpenSSH. Any system capable of running these programs will work, including Macs, or Windows machines running Cygwin.
+Clients need only a POSIX shell, rsync, and OpenSSH. Any system capable of running these programs will work, including Macs, or Windows machines running Cygwin.
 
 Copy `slugger-client.sh` to the client. Slugger's configuration files can either be in `~/.slugger` or in `/etc/slugger`; I recommend the former when running `slugger-client.sh` as a regular user, and the latter when running as root. If both exist, only `~/.slugger` is used.
 
@@ -98,3 +98,7 @@ Optional:
 - `rsh`: The remote shell to use, if not `ssh`. `rsync` will only work if the shell is fairly `ssh`-/`rsh`-like.
 
 Once the configuration is in place, all you have to do is run `slugger-client.sh`. If you want scheduled backups, see `crontab`.
+
+If you want to send additional options without adding them to `extras` (e.g. you [just finished cleaning up after an aborted in-place encryption of your backup drive](https://github.com/SolraBizna/enthunter) and you want to temporarily enable `-c`), pass them to `slugger-client.sh` as arguments. They will be placed after `extras`, but before the list of files.
+
+(Normally, when you run `slugger-client.sh` from a terminal, it will add `--human-readable --progress` to the options. It will not do so on its own if you pass additional command line options. If you want to specify additional options *and* get progress reports, you can add those options yourself.)

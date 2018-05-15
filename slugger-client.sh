@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "$__SLUGGER_FLOCKED__" ]; then
     export __SLUGGER_FLOCKED__=1
-    flock -xn /tmp/$(whoami)_slugger_lock bash $0 $*
+    flock -E42 -xn /tmp/$(whoami)_slugger_lock "$0" "$@"
     WAT=$?
     if [ $WAT = 0 ]; then
         rm -f /tmp/$(whoami)_slugger_lock
-    elif [ $WAT = 1 ]; then
+    elif [ $WAT = 42 ]; then
         echo "Another Slugger client instance is already running, or the lock is stale."
         echo "If you're certain another client isn't running, delete /tmp/$(whoami)_slugger_lock and try again."
     fi
@@ -15,7 +15,7 @@ fi
 
 KILL_AGENT=
 if [ -z "$SSH_AGENT_PID" -a -z "$SSH_AUTH_SOCK" ]; then
-    exec env CALL_SSH_ADD=1 ssh-agent bash $0 $*
+    exec env CALL_SSH_ADD=1 ssh-agent "$0" "$@"
 fi
 if [ ! -z "$CALL_SSH_ADD" ]; then
     ssh-add
@@ -54,11 +54,11 @@ if [ -z "$RSYNC_RSH" ]; then
     fi
 fi
 
-if [ -t 1 ]; then
+if [ -t 1 -a "$#" -le 0 ]; then
     PROGRESS_OPTIONS="--human-readable --progress"
 else
     PROGRESS_OPTIONS=""
 fi
 
-rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw -M--fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $EXTRAS / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
+rsync --timeout=30 --archive --recursive $PROGRESS_OPTIONS --one-file-system --links --delete-during --delete-excluded --ignore-existing --inplace --chmod=u+rw -M--fake-super --files-from=$SLUGGER_DIR/sources --exclude-from=$SLUGGER_DIR/exclude --link-dest=../latest $EXTRAS "$@" / "$(cat $SLUGGER_DIR/host):$(cat $SLUGGER_DIR/dir)/current" || exit 2
 $RSYNC_RSH "$(cat $SLUGGER_DIR/host)" slugger-snap "$(cat $SLUGGER_DIR/dir)" || exit 5
